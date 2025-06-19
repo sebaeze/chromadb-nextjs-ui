@@ -1,0 +1,16 @@
+{
+  "name": "chromadb-nextjs-ui",
+  "version": "1.0.0",
+  "description": "UI Client for ChromaDB using Next.js ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chromadb",
+    "next.js",
+    "client"
+  ],
+  "author": "sebaeze@gmail.com",
+  "license": "ISC"
+}
