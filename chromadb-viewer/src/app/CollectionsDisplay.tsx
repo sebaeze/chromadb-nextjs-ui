@@ -1,6 +1,7 @@
 "use client"; // This directive marks this as a Client Component
 
 import React from 'react';
+import Link from 'next/link';
 
 // Define an interface for the structure of a single collection's metadata
 interface CollectionMetadata {
@@ -42,14 +43,16 @@ const CollectionsDisplay: React.FC<CollectionsDisplayProps> = ({ collections, er
           <ul className="collectionList">
             {collections.map((collection: Collection) => (
               <li key={collection.id} className="collectionItem">
-                <h2>{collection.name}</h2>
-                <p><strong>ID:</strong> {collection.id}</p>
-                {collection.metadata && (
-                  <div>
-                    <strong>Metadata:</strong>
-                    <pre>{JSON.stringify(collection.metadata, null, 2)}</pre>
-                  </div>
-                )}
+                <Link href={`/collections/${collection.name}`} className="collectionLink">
+                  <h2>{collection.name}</h2>
+                  <p><strong>ID:</strong> {collection.id}</p>
+                  {collection.metadata && (
+                    <div>
+                      <strong>Metadata:</strong>
+                      <pre>{JSON.stringify(collection.metadata, null, 2)}</pre>
+                    </div>
+                  )}
+                </Link>
               </li>
             ))}
           </ul>
@@ -102,10 +105,21 @@ const CollectionsDisplay: React.FC<CollectionsDisplayProps> = ({ collections, er
         .collectionItem {
           background: #fff;
           border: 1px solid #ddd;
-          padding: 1.5rem;
           margin-bottom: 1rem;
           border-radius: 8px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .collectionItem:hover {
+          cursor: pointer;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+          transform: translateY(-2px);
+        }
+        .collectionLink {
+          display: block;
+          padding: 1.5rem;
+          text-decoration: none;
+          color: inherit;
         }
         .collectionItem h2 {
           margin-top: 0;

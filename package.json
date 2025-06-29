@@ -4,6 +4,7 @@
   "description": "UI Client for ChromaDB using Next.js ",
   "main": "index.js",
   "scripts": {
+    "dev:ui":"pwd & cd ./chromadb-viewer & npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
