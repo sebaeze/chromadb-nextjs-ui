@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 interface RouteParams {
     params: {
         id: string;
+        name: string;
     }
 }
 
@@ -38,7 +39,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         });
 
         if (!res.ok) {
-            let errorMessage = `Failed to fetch documents. Status: ${res.status}`;
+            const errorMessage = `Failed to fetch documents. Status: ${res.status}`;
             const errorDetails = await res.json().catch(() => res.text());
             console.error(errorMessage, errorDetails);
             return NextResponse.json({ error: errorMessage, details: errorDetails }, { status: res.status });
@@ -49,7 +50,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         // We are forwarding the whole response.
         return NextResponse.json(data);
 
-    } catch (error: any) {
+    } catch (error: TError) {
         console.error(`Error fetching documents for collection ${id}:`, error);
         if (error.cause && error.cause.code === 'ECONNREFUSED') {
             const friendlyMessage = `Could not connect to ChromaDB at ${chromaDBUrl}. Please ensure ChromaDB is running and accessible.`;

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Define an interface for the structure of a single collection's metadata
 interface CollectionMetadata {
-  [key: string]: any;
+  [key: string]: [value: string];
 }
 
 // Define an interface for the structure of a single document
@@ -23,9 +24,21 @@ interface CollectionDetailProps {
   };
   documents: Document[] | null;
   documentsError: string | null;
+  collectionCount: number | null;
 }
 
-const CollectionDetail = ({ collection, documents, documentsError }: CollectionDetailProps) => {
+const CollectionDetail = ({ collection, documents, documentsError, collectionCount }: CollectionDetailProps) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // Get current limit from URL, default to 10
+    const currentLimit = searchParams.get('limit') || '3';
+
+    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLimit = e.target.value;
+        router.push(`/collections/${collection.name}?limit=${newLimit}`);
+    };
+
     return (
         <div className="container">
             <main className="main">
@@ -51,7 +64,21 @@ const CollectionDetail = ({ collection, documents, documentsError }: CollectionD
                 </div>
 
                 <div className="documentsSection">
-                    <h2 className="sectionTitle">Documents</h2>
+                    <div className="sectionHeader">
+                        <h2 className="sectionTitle">Documents</h2>
+                        <div className="limitSelector">
+                            <label htmlFor="limit-select">Show:</label>
+                            <select id="limit-select" value={currentLimit} onChange={handleLimitChange}>
+                                <option value="2">2</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                {collectionCount !== null && <option value={collectionCount}>All ({collectionCount})</option>}
+                            </select>
+                        </div>
+                    </div>
+
                     {documentsError && (
                         <div className="error">
                             <p>Error fetching documents:</p>
@@ -60,27 +87,62 @@ const CollectionDetail = ({ collection, documents, documentsError }: CollectionD
                     )}
 
                     {documents && documents.length > 0 && (
-                        <ul className="documentList">
-                            {documents.map((doc) => (
-                                <li key={doc.id} className="documentItem">
-                                    <div className="detailGrid">
-                                        <div className="detailItem"><strong>ID:</strong></div>
-                                        <div className="detailItem code">{doc.id}</div>
-                                        <div className="detailItem"><strong>Content:</strong></div>
-                                        <div className="detailItem documentContent">{doc.document || 'N/A'}</div>
-                                        {doc.metadata && Object.keys(doc.metadata).length > 0 && (
-                                            <>
-                                                <div className="detailItem"><strong>Metadata:</strong></div>
-                                                <div className="detailItem">
-                                                    {JSON.stringify(doc.metadata, null, 2)}
+                        <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '20%', textAlign: 'left', padding: '8px' }}>ID</th>
+                                    <th style={{ width: '40%', textAlign: 'left', padding: '8px' }}>Metadata</th>
+                                    <th style={{ width: '40%', textAlign: 'left', padding: '8px' }}>Content</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {documents.map((doc) => (
+                                    <tr key={doc.id} className="documentItem">
+                                        <td className="detailItem code" style={{width:'20%', verticalAlign: 'top', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', padding: '8px'}}>
+                                            {doc.id}
+                                        </td>
+                                        <td className="detailItem" style={{width:'40%', verticalAlign: 'top', padding: '8px'}}>
+                                            {doc.metadata && Object.keys(doc.metadata).length > 0 ? (
+                                                <div style={{ overflowX: 'auto', whiteSpace: 'nowrap'}}>
+                                                    <pre  style={{
+                                                        backgroundColor: '#fafafa',
+                                                        border: '1px solid #eee',
+                                                        borderRadius: '4px',
+                                                        padding: '1rem',
+                                                        margin: 0,
+                                                        maxHeight: '8em',      // Limits height to ~8 lines (e.g., 8 lines * 1.5em line-height)
+                                                        overflowY: 'auto',      // Adds vertical scrollbar when content exceeds maxHeight
+                                                        whiteSpace: 'pre-wrap', // Preserves whitespace and wraps long lines
+                                                        wordBreak: 'break-word' // Ensures long words don't overflow horizontally
+                                                    }}>
+                                                        {JSON.stringify(doc.metadata, null, 2)}
+                                                    </pre>
                                                 </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                                            ) : (
+                                                'N/A'
+                                            )}
+                                        </td>
+                                        <td className="detailItem" style={{width:'40%', verticalAlign: 'top', padding: '8px'}}>
+                                            <pre style={{
+                                                backgroundColor: '#fafafa',
+                                                border: '1px solid #eee',
+                                                borderRadius: '4px',
+                                                padding: '1rem',
+                                                margin: 0,
+                                                maxHeight: '8em',      // Limits height to ~8 lines (e.g., 8 lines * 1.5em line-height)
+                                                overflowY: 'auto',      // Adds vertical scrollbar when content exceeds maxHeight
+                                                whiteSpace: 'pre-wrap', // Preserves whitespace and wraps long lines
+                                                wordBreak: 'break-word' // Ensures long words don't overflow horizontally
+                                            }}>
+                                                {doc.document || 'N/A'}
+                                            </pre>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
+
                     {documents && documents.length === 0 && !documentsError && <p>No documents found in this collection.</p>}
                 </div>
             </main>
@@ -103,7 +165,7 @@ const CollectionDetail = ({ collection, documents, documentsError }: CollectionD
                   flex-direction: column;
                   align-items: center;
                   width: 100%;
-                  max-width: 800px;
+                  max-width: 99%;
                 }
                 .breadcrumb {
                     width: 100%;
@@ -164,12 +226,30 @@ const CollectionDetail = ({ collection, documents, documentsError }: CollectionD
                     margin-top: 3rem;
                     width: 100%;
                 }
+                .sectionHeader {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 100%;
+                    margin-bottom: 2rem;
+                }
                 .sectionTitle {
                     font-size: 2rem;
                     color: #333;
                     border-bottom: 2px solid #0070f3;
                     padding-bottom: 0.5rem;
-                    margin-bottom: 2rem;
+                    margin: 0; /* Reset margin as it's now in a flex container */
+                }
+                .limitSelector {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .limitSelector select {
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 4px;
+                    border: 1px solid #ddd;
+                    font-size: 1rem;
                 }
                 .documentList {
                     list-style: none;
